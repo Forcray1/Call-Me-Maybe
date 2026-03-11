@@ -5,8 +5,7 @@ from typing import List, Dict, Any, Optional
 
 def load_function_definitions(path: str) -> List[FunctionDefinition]:
     """
-    Lit un fichier JSON et retourne une liste
-    d'objets FunctionDefinition.
+    Read a JSON file and return a list of FunctionDefinition objects.
     """
     with open(path, "r") as json_file:
         data = json.load(json_file)
@@ -26,8 +25,7 @@ def load_function_definitions(path: str) -> List[FunctionDefinition]:
 
 def load_prompts(path: str) -> List[str]:
     """
-    Lit un fichier JSON contenant les requêtes et retourne
-    une liste de prompts (strings).
+    Read a JSON file and return a list of prompts (strings).
     """
     with open(path, "r") as json_file:
         data = json.load(json_file)
@@ -36,7 +34,7 @@ def load_prompts(path: str) -> List[str]:
 
 def load_vocabulary(vocab_path: str) -> Dict[str, int]:
     """
-    Charge le vocabulaire depuis le fichier JSON fourni par le SDK.
+    Load vocabulary from the JSON file provided by the SDK.
     """
     try:
         with open(vocab_path, "r", encoding="utf-8") as f:
@@ -62,7 +60,7 @@ def load_vocabulary(vocab_path: str) -> Dict[str, int]:
 
 def build_templates(definitions: List[FunctionDefinition]) -> List[List[str]]:
     """
-    Construit des "templates" de validité pour chaque définition de fonction.
+    Build validity templates for each function definition.
     """
     templates = []
     for d in definitions:
@@ -93,7 +91,7 @@ def build_templates(definitions: List[FunctionDefinition]) -> List[List[str]]:
 
 def is_prefix_match(candidate: str, template: List[str]) -> bool:
     """
-    Vérifie si la string est un préfixe valide pour le 'template' donné.
+    Check if the string is a valid prefix for the given template.
     """
     s_idx = 0
     t_idx = 0
@@ -171,8 +169,7 @@ def get_allowed_tokens(
     clean_vocab_map: Optional[Dict[int, str]] = None
 ) -> List[int]:
     """
-    Détermine quels sont les prochains tokens autorisés pour garantir
-     la validité du JSON.
+    Determine allowed next tokens to ensure valid JSON.
     """
     if clean_vocab_map is None:
         clean_vocab_map = {v: k for k, v in vocab.items()}
@@ -187,7 +184,7 @@ def get_allowed_tokens(
         candidate = current_generation + token_str
 
         # Test du token avec chacun des templates des fonctions disponibles
-        # S'il matche comme préfixe valide pour n'importe quelle fonction, on l'autorise
+        # S'il matche comme préfixe valide pour une fonction, on l'autorise
         for tpl in templates:
             if is_prefix_match(candidate, tpl):
                 allowed.append(token_id)
@@ -198,8 +195,7 @@ def get_allowed_tokens(
 
 def apply_logit_bias(logits: Any, allowed_tokens: List[int]) -> Any:
     """
-    Masque les probabilités des tokens interdits dans les logits du modèle en
-    les mettant à -inf.
+    Mask forbidden token probabilities in logits by setting them to -inf.
     """
     allowed_set = set(allowed_tokens)
     for i in range(len(logits)):
@@ -216,8 +212,7 @@ def generate_structured_call(
     max_tokens: int = 256
 ) -> FunctionCall:
     """
-    Génère un appel de fonction structuré en utilisant un modèle LLM et du
-    constrained decoding.
+    Generate a structured function call using an LLM and constrained decoding.
     """
     # 1. Nettoyage du vocabulaire
     clean_vocab_map = {}
@@ -237,8 +232,8 @@ def generate_structured_call(
     sys_prompt += f"Request: {prompt}\nJSON:\n"
 
     # 3. Initialisation de la chaîne
-    input_ids = model.encode(sys_prompt + "{").tolist()[0]
-    current_generation = "{"  # On intègre l'accolade pour forcer le démarrage JSON
+    input_ids = model.encode(sys_prompt + "{").tolist()[0]  # tokenisation
+    current_generation = "{"  # "{" pour forcer le démarrage JSON
 
     # 4. Boucle d'Inférence Constrained Decoding
     for step in range(max_tokens):
@@ -256,16 +251,14 @@ def generate_structured_call(
                   f"no valid token found.")
             break
 
-        # Applique le biais infini
         logits = apply_logit_bias(logits, allowed_tokens)
 
-        # Trouve l'index du token valide ayant le plus grand logit
         best_token_id = max(range(len(logits)), key=lambda x: logits[x])
 
         input_ids.append(best_token_id)
         current_generation += clean_vocab_map[best_token_id]
 
-        # On arrête la génération dès que l'accolade principale se ferme correctement
+        # On arrête la génération dès que l'accolade principale se ferme
         if current_generation.endswith('}'):
             try:
                 parsed = json.loads(current_generation)

@@ -1,6 +1,3 @@
-"""
-définit les types d’objets utilisés dans le programme.
-"""
 from pydantic import BaseModel
 from typing import Dict, Any
 

@@ -1,17 +1,3 @@
-"""
-derouler du programme :
-
-__main__.py
-   ↓
-decoder.py
-   ↓
-models.py (création d’objets)
-   ↓
-state_machine.py
-   ↓
-résultat final
-
-"""
 from .decoder import (
     load_function_definitions,
     load_prompts,
@@ -26,12 +12,8 @@ from llm_sdk import Small_LLM_Model  # type: ignore
 
 def main() -> None:
     """
-    Point d'entrée principal du programme.
-
-    Il parse les arguments en ligne de commande, charge les définitions de
-    fonctions et les requêtes, puis sauvegarde les appels structurés générés
-    dans le fichier de sortie spécifié. Gère les erreurs lors du chargement des
-    fichiers ou lors de la génération des dossiers de sortie.
+    Main entry point. Parses CLI arguments, loads definitions and prompts,
+    and saves structured calls to output. Handles file and directory errors.
     """
     func_def_path = "data/input/functions_definition.json"
     input_path = "data/input/function_calling_tests.json"
