@@ -183,8 +183,6 @@ def get_allowed_tokens(
 
         candidate = current_generation + token_str
 
-        # Test du token avec chacun des templates des fonctions disponibles
-        # S'il matche comme préfixe valide pour une fonction, on l'autorise
         for tpl in templates:
             if is_prefix_match(candidate, tpl):
                 allowed.append(token_id)
@@ -214,7 +212,6 @@ def generate_structured_call(
     """
     Generate a structured function call using an LLM and constrained decoding.
     """
-    # 1. Nettoyage du vocabulaire
     clean_vocab_map = {}
     for token_str, token_id in vocab.items():
         s = token_str
@@ -224,22 +221,19 @@ def generate_structured_call(
              .replace('ċ', '\n'))
         clean_vocab_map[token_id] = s
 
-    # 2. Construction du System Prompt
     sys_prompt = "You are an assistant. Output ONLY a valid JSON object " \
                  "matching exactly one of the definitions.\n"
     for d in definitions:
         sys_prompt += f"- Function: '{d.name}' | Parameters: {d.parameters}\n"
     sys_prompt += f"Request: {prompt}\nJSON:\n"
 
-    # 3. Initialisation de la chaîne
     input_ids = model.encode(sys_prompt + "{").tolist()[0]  # tokenisation
     current_generation = "{"  # "{" pour forcer le démarrage JSON
 
-    # 4. Boucle d'Inférence Constrained Decoding
+    # Boucle d'Inférence Constrained Decoding
     for step in range(max_tokens):
         logits = model.get_logits_from_input_ids(input_ids)
 
-        # Filtre les tokens 100% compatibles selon nos Templates de Fonctions
         allowed_tokens = get_allowed_tokens(current_generation,
                                             vocab,
                                             definitions,

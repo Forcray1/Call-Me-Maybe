@@ -1,10 +1,10 @@
+
 install:
-	uv sync
-	pip install pydantic numpy
-	pip install -e .
+	python3 -m venv .venv
+	. .venv/bin/activate && uv sync && pip install pydantic numpy && pip install mypy flake8 && pip install -e .
 
 run:
-	HF_HOME=/tmp/hf-home UV_CACHE_DIR=/tmp/uv-cache UV_PROJECT_ENVIRONMENT=/tmp/call-me-maybe-venv uv run python -m src
+	HF_HOME=/tmp/hf-home UV_CACHE_DIR=/tmp/uv-cache UV_LINK_MODE=copy uv run --active python -m src
 
 debug:
 	uv run python -m pdb src/__main__.py
@@ -15,12 +15,13 @@ clean:
 	find . -type d -name "__pycache__" -prune -exec rm -rf {} +
 	find . -type d -name ".mypy_cache" -prune -exec rm -rf {} +
 	find . -type d -name "*.egg-info" -prune -exec rm -rf {} +
+	find . -type d -name ".venv" -prune -exec rm -rf {} +
 lint:
-	flake8 .
+	python3 -m flake8
 	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict:
-	flake8 .
+	python3 -m flake8
 	mypy . --strict
 
 .PHONY: install run debug clean lint lint-strict
