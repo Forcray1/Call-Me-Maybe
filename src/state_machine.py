@@ -32,7 +32,7 @@ class StateMachine(BaseModel):
 
     def process_call(self, call: FunctionCall) -> bool:
         """
-        Vérifie la validité d'un appel (nom, paramètres, types).
+        CHeck the validity of a FunctionCall
         """
         definition = self._definitions_by_name.get(call.name)
         if not definition:
@@ -64,7 +64,7 @@ class StateMachine(BaseModel):
 
     def _map_type(self, json_type: str) -> type:
         """
-        Convertit le type JSON (string) en type Python pour Pydantic.
+        Convert the JSON type into a python one for pydantic
         """
         mapping = {
             "number": float,

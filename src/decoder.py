@@ -228,9 +228,9 @@ def generate_structured_call(
     sys_prompt += f"Request: {prompt}\nJSON:\n"
 
     input_ids = model.encode(sys_prompt + "{").tolist()[0]  # tokenisation
-    current_generation = "{"  # "{" pour forcer le démarrage JSON
+    current_generation = "{"  # "{" to force JSON starting
 
-    # Boucle d'Inférence Constrained Decoding
+    # Constrained Decoding
     for step in range(max_tokens):
         logits = model.get_logits_from_input_ids(input_ids)
 
@@ -252,7 +252,7 @@ def generate_structured_call(
         input_ids.append(best_token_id)
         current_generation += clean_vocab_map[best_token_id]
 
-        # On arrête la génération dès que l'accolade principale se ferme
+        # Stop genereation as soon as the principal breace close
         if current_generation.endswith('}'):
             try:
                 parsed = json.loads(current_generation)
@@ -265,7 +265,7 @@ def generate_structured_call(
             except ValueError:
                 continue
 
-    # Mécanisme de Fallback en cas d'erreur de la loop
+    # Fallback mecanisme in case of loop error
     try:
         parsed = json.loads(current_generation)
         return FunctionCall(prompt=prompt,
