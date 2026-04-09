@@ -74,6 +74,8 @@ def build_templates(definitions: List[FunctionDefinition]) -> List[List[str]]:
 
             if p_type == "number":
                 tpl.append("NUMBER")
+            elif p_type == "integer":
+                tpl.append("INTEGER")
             elif p_type == "boolean":
                 tpl.append("BOOLEAN")
             else:
@@ -100,7 +102,7 @@ def is_prefix_match(candidate: str, template: List[str]) -> bool:
         part = template[t_idx]
         rem = candidate[s_idx:]
 
-        if part == "NUMBER":
+        if part == "NUMBER" or part == "INTEGER":
             i = 0
             if i < len(rem) and rem[i] == '-':
                 i += 1

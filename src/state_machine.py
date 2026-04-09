@@ -68,6 +68,7 @@ class StateMachine(BaseModel):
         """
         mapping = {
             "number": float,
+            "integer": int,
             "string": str,
             "boolean": bool,
         }
